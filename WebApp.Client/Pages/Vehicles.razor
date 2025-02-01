@@ -1,0 +1,81 @@
+﻿@page "/vehicles"
+@using WebApp.Client.Services
+@using WebApp.Shared.Dto
+@inject VehicleService VehicleService
+@inject NavigationManager Navigation
+
+<h3>Vehicles</h3>
+
+<input type="text" placeholder="Search by brand or model..." @bind="searchTerm" @oninput="FilterVehicles" />
+
+@if (vehicles == null)
+{
+    <p>Loading...</p>
+}
+else if (vehicles.Count == 0)
+{
+    <p>No vehicles available.</p>
+}
+else
+{
+    <ul>
+        @foreach (var vehicle in FilteredVehicles)
+        {
+            <li>
+                @vehicle.Brand @vehicle.Model - @vehicle.LicensePlate
+                <button @onclick="@(() => Navigation.NavigateTo($"/history/{vehicle.Id}"))">History</button>
+                <button @onclick="@(() => Navigation.NavigateTo($"/edit-vehicle/{vehicle.Id}"))">Edit</button>
+                <button @onclick="@(() => DeleteVehicle(vehicle.Id))">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<VehicleDto>? vehicles;
+    private string searchTerm = "";
+    private List<VehicleDto>? filteredVehicles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVehicles();
+    }
+
+    private async Task LoadVehicles()
+    {
+        try
+        {
+            vehicles = await VehicleService.GetVehiclesAsync();
+            FilterVehicles();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching vehicles: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteVehicle(int id)
+    {
+        try
+        {
+            await VehicleService.DeleteVehicleAsync(id);
+            await LoadVehicles();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting vehicle: {ex.Message}");
+        }
+    }
+
+    private void FilterVehicles()
+    {
+        filteredVehicles = string.IsNullOrWhiteSpace(searchTerm)
+            ? vehicles
+            : vehicles?.Where(v =>
+                v.Brand.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                v.Model.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+    }
+
+    private List<VehicleDto> FilteredVehicles => filteredVehicles ?? new List<VehicleDto>();
+}

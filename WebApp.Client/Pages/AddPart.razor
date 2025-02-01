@@ -1,0 +1,83 @@
+﻿@page "/add-part"
+@using WebApp.Shared.Dto
+@using WebApp.Client.Services
+@inject PartService PartService
+@inject RepairService RepairService
+@inject NavigationManager Navigation
+
+<h3>Add Part</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+<div>
+    <label>Name:</label>
+    <input @bind="part.Name" />
+</div>
+<div>
+    <label>Manufacturer:</label>
+    <input @bind="part.Manufacturer" />
+</div>
+<div>
+    <label>Price:</label>
+    <input type="number" step="0.01" @bind="part.Price" />
+</div>
+<div>
+    <label>Repair:</label>
+    <select @bind="part.RepairId">
+        <option value="0">-- Select Repair --</option>
+        @foreach (var repair in repairs)
+        {
+            <option value="@repair.Id">@repair.Description</option>
+        }
+    </select>
+</div>
+
+<button @onclick="SavePart">Save</button>
+<button @onclick="@(() => Navigation.NavigateTo("/parts"))">Cancel</button>
+
+@code {
+    private PartDto part = new();
+    private List<RepairDto> repairs = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        repairs = await RepairService.GetRepairsAsync();
+    }
+
+    private async Task SavePart()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(part.Name))
+        {
+            errorMessage = "Part name is required.";
+            return;
+        }
+
+        if (part.Price <= 0)
+        {
+            errorMessage = "Price must be greater than 0.";
+            return;
+        }
+
+        if (part.RepairId == 0)
+        {
+            errorMessage = "Please select a repair.";
+            return;
+        }
+
+        try
+        {
+            await PartService.AddPartAsync(part);
+            Navigation.NavigateTo("/parts");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding part: {ex.Message}";
+        }
+    }
+}

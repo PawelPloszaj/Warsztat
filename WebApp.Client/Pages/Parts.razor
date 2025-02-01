@@ -1,0 +1,28 @@
+﻿@page "/parts"
+@using WebApp.Shared.Dto
+@using WebApp.Client.Services
+@inject HttpClient Http
+<h3>Parts</h3>
+
+@if (parts == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var part in parts)
+        {
+            <li>Part ID: @part.Id, Name: @part.Name, Manufacturer: @part.Manufacturer, Price: @part.Price, RepairID: @part.RepairId</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<PartDto>? parts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        parts = await Http.GetFromJsonAsync<List<PartDto>>("api/parts");
+    }
+}

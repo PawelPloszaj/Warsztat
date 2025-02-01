@@ -1,0 +1,85 @@
+@page "/Login"
+@using WebApp.Shared.Dto
+@using WebApp.Client.Services
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+<PageTitle>Le Epic Lonig Paeg</PageTitle>
+
+<head>
+    <style>
+        .center {
+            margin: auto;
+            width: 30%;
+        }
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+
+        <img src="/Res/krater.png" id="logo" alt="Gąsienica paląca papierosa" width="200px" height="267px">
+
+        <EditForm Model="@loginDto" OnValidSubmit="@LoginUser">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <InputText @bind-Value="loginDto.Email" class="form-control" placeholder="Email" />
+                <ValidationMessage For="@(() => loginDto.Email)" />
+            </div>
+
+            <div class="form-group">
+                <InputText @bind-Value="loginDto.Password" type="password" class="form-control" placeholder="Hasło" />
+                <ValidationMessage For="@(() => loginDto.Password)" />
+            </div>
+            <br />
+            <p class="formbuttons">
+                <button type="submit" id="submit" class="button mainaction submit btn btn-primary btn-lg text-uppercase w-100">Zaloguj</button>
+            </p>
+            <br />
+            @if (loginStatus == LoginStatus.Error)
+            {
+                <div class="alert @statusClass" role="alert">
+                    @loginMessage
+                </div>
+            }
+        </EditForm>
+        <br />
+    </div>
+</body>
+
+
+
+@code {
+    private LoginDto loginDto = new();
+    private LoginStatus loginStatus = LoginStatus.None;
+    private string loginMessage = "";
+    private string statusClass = "";
+
+    private async Task LoginUser()
+    {
+        var result = await UserService.Login(loginDto);
+        if (result.Successful)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            loginStatus = LoginStatus.Error;
+            loginMessage = "Niepoprawny email lub hasło.";
+            statusClass = "alert-danger";
+            return;
+        }
+    }
+
+    public enum LoginStatus
+    {
+        None,
+        Success,
+        Error
+    }
+}

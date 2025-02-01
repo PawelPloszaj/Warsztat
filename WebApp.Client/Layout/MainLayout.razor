@@ -1,0 +1,68 @@
+﻿@using WebApp.Client.Services
+@using System.Security.Claims
+@inherits LayoutComponentBase
+@inject ApiAuthenticationStateProvider AuthenticationStateProvider
+
+<div class="page">
+    <nav class="sidebar">
+        <ul>
+            <li><NavLink href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+            <li><NavLink href="/clients">Clients</NavLink></li>
+            <li><NavLink href="/mechanics">Mechanics</NavLink></li>
+            <li><NavLink href="/add-client">Add Client</NavLink></li>
+            <li><NavLink href="/vehicles">Vehicles</NavLink></li>
+            <li><NavLink href="/add-vehicle">Add Vehicle</NavLink></li>
+            <li><NavLink href="/repairorders">Repair Orders</NavLink></li>
+            <li><NavLink href="/add-repairorder">Add Repair Order</NavLink></li>
+            <li><NavLink href="/repairs">Repairs</NavLink></li>
+            <li><NavLink href="/add-repair">Add Repair</NavLink></li>
+            <li><NavLink href="/parts">Parts</NavLink></li>
+            <li><NavLink href="/add-part">Add Part</NavLink></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink href="logout">Logout</NavLink>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink href="login">Login</NavLink>
+                    <NavLink href="register">Register</NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<style>
+    .sidebar {
+        width: 200px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: #2c3e50;
+        padding-top: 20px;
+    }
+    
+    .sidebar ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .sidebar ul li {
+        padding: 10px;
+    }
+
+    .sidebar ul li a {
+        color: white;
+        text-decoration: none;
+    }
+
+</style>

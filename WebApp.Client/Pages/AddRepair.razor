@@ -1,0 +1,90 @@
+﻿@page "/add-repair"
+@using WebApp.Shared.Dto
+@using WebApp.Client.Services
+@inject RepairService RepairService
+@inject RepairOrderService RepairOrderService
+@inject NavigationManager Navigation
+
+<h3>Add Repair</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+<div>
+    <label>Description:</label>
+    <input @bind="repair.Description" />
+</div>
+<div>
+    <label>Repair Date:</label>
+    <input type="datetime" @bind="repair.RepairDate" />
+</div>
+<div>
+    <label>Cost:</label>
+    <input type="number" step="0.01" @bind="repair.Cost" />
+</div>
+<div>
+    <label>Repair Order:</label>
+    <select @bind="repair.RepairOrderId">
+        <option value="0">-- Select Repair Order --</option>
+        @foreach (var order in repairOrders)
+        {
+            <option value="@order.Id">Order ID: @order.Id</option>
+        }
+    </select>
+</div>
+
+<button @onclick="SaveRepair">Save</button>
+<button @onclick="@(() => Navigation.NavigateTo("/repairs"))">Cancel</button>
+
+@code {
+    private RepairDto repair = new() { RepairDate = DateTime.UtcNow };
+    private List<RepairOrderDto> repairOrders = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            repairOrders = await RepairOrderService.GetRepairOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading repair orders: {ex.Message}";
+        }
+    }
+
+    private async Task SaveRepair()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(repair.Description))
+        {
+            errorMessage = "Description is required.";
+            return;
+        }
+
+        if (repair.Cost <= 0)
+        {
+            errorMessage = "Cost must be greater than 0.";
+            return;
+        }
+
+        if (repair.RepairOrderId == 0)
+        {
+            errorMessage = "Please select a repair order.";
+            return;
+        }
+
+        try
+        {
+            await RepairService.AddRepairAsync(repair);
+            Navigation.NavigateTo("/repairs");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding repair: {ex.Message}";
+        }
+    }
+}

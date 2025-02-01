@@ -1,0 +1,110 @@
+﻿@page "/add-vehicle"
+@using WebApp.Client.Services
+@using WebApp.Shared.Dto
+@inject VehicleService VehicleService
+@inject ClientService ClientService
+@inject NavigationManager Navigation
+
+<h3>Add Vehicle</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+<div>
+    <label>License Plate:</label>
+    <input @bind="vehicle.LicensePlate" />
+</div>
+<div>
+    <label>Brand:</label>
+    <input @bind="vehicle.Brand" />
+</div>
+<div>
+    <label>Model:</label>
+    <input @bind="vehicle.Model" />
+</div>
+<div>
+    <label>Year:</label>
+    <input type="number" @bind="vehicle.Year" min="1900" max="@DateTime.Today.Year" />
+</div>
+<div>
+    <label>Client:</label>
+    <select @bind="vehicle.ClientId">
+        <option value="0">-- Select Client --</option>
+        @foreach (var client in clients)
+        {
+            <option value="@client.Id">@client.FirstName @client.LastName</option>
+        }
+    </select>
+</div>
+
+<button @onclick="SaveVehicle">Save</button>
+<button @onclick="@(() => Navigation.NavigateTo("/vehicles"))">Cancel</button>
+
+@code {
+    private VehicleDto vehicle = new();
+    private List<ClientDto> clients = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            clients = await ClientService.GetClientsAsync();
+            if (clients.Count == 0)
+            {
+                errorMessage = "No clients available. Please add a client first.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading clients: {ex.Message}";
+        }
+    }
+
+    private async Task SaveVehicle()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(vehicle.LicensePlate))
+        {
+            errorMessage = "License plate is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.Brand))
+        {
+            errorMessage = "Brand is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.Model))
+        {
+            errorMessage = "Model is required.";
+            return;
+        }
+
+        if (vehicle.Year < 1900 || vehicle.Year > DateTime.Today.Year)
+        {
+            errorMessage = $"Year must be between 1900 and {DateTime.Today.Year}.";
+            return;
+        }
+
+        if (vehicle.ClientId == 0)
+        {
+            errorMessage = "Please select a client.";
+            return;
+        }
+
+        try
+        {
+            await VehicleService.AddVehicleAsync(vehicle);
+            Navigation.NavigateTo("/vehicles");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding vehicle: {ex.Message}";
+        }
+    }
+}

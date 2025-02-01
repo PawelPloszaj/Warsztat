@@ -1,0 +1,73 @@
+﻿@page "/"
+@using WebApp.Client.Components
+@using WebApp.Client.Services
+@using System.Security.Claims
+@using System.Text
+@using Newtonsoft.Json
+@using WebApp.Shared.Dto
+@inject HttpClient HttpClient
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Home</PageTitle>
+
+<style>
+.center {
+  margin: auto;
+}
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+table, th, td {
+  border:1px solid black;
+}
+</style>
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <style>
+            body { background: white !important; }
+        </style>
+        <div style="text-align: center;">
+            <h1>Warsztat Samochodowy</h1>
+            @if (state != null && state.User.IsInRole("admin"))
+                        {
+                            
+                        }
+        </div>
+        <br/>
+ 
+    </Authorized>
+    <NotAuthorized>
+            <style>
+                body { background: red !important; }
+            </style>
+        <div class="center">
+            <img src="/Res/sotp.png" id="sotp" width="90%" height="90%">
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private ModalDialog AddDialog { get; set; }
+    private ModalDialog EditDialog { get; set; }
+    public string userName = "";
+    AuthenticationState? state = null;
+    
+    public string data = "";
+    private EditContext? editContext;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (!state.User.Claims.Any())
+        {
+            return;
+        }
+        
+    }
+
+
+}

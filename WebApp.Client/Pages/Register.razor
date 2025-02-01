@@ -1,0 +1,125 @@
+@page "/Register"
+@inject HttpClient HttpClient
+@inject WebApp.Client.Services.UserService UserService
+@inject NavigationManager NavigationManager
+@using System.ComponentModel.DataAnnotations
+@using WebApp.Shared.Dto
+
+<PageTitle>Rejestracja nowego użytkownika</PageTitle>
+@*<h3>Rejestracja nowego użytkownika</h3>*@
+
+<head>
+    <style>
+        .center {
+            margin: auto;
+            width: 30%;
+        }
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+
+        <img src="/Res/krater.png" id="logo" alt="Gąsienica paląca papierosa" width="200px" height="267px">
+        <EditForm Model="@user" OnValidSubmit="@RegisterUser">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <InputText @bind-Value="user.Username" class="form-control" placeholder="Nazwa Użytkownika" />
+                <ValidationMessage For="@(() => user.Username)" />
+            </div>
+
+            <div class="form-group">
+                <InputText @bind-Value="user.Email" type="email" class="form-control" placeholder="Email" />
+                <ValidationMessage For="@(() => user.Email)" />
+            </div>
+
+            <div class="form-group">
+                <InputText @bind-Value="user.Password" type="password" class="form-control" placeholder="Hasło" />
+                <ValidationMessage For="@(() => user.Password)" />
+            </div>
+
+            <div class="form-group">
+                <InputText @bind-Value="confirmPassword" type="password" class="form-control" placeholder="Powtórz hasło" />
+            </div>
+
+            <br />
+
+            <p class="formbuttons">
+                <button type="submit" id="submit" class="button mainaction submit btn btn-primary btn-lg text-uppercase w-100">Zarejestruj</button>
+            </p>
+            <br />
+
+            @if (registrationStatus != RegistrationStatus.None)
+            {
+                <div class="alert @statusClass" role="alert">
+                    @registrationMessage
+                </div>
+            }
+            @if (registrationStatus == RegistrationStatus.Success)
+            {
+                <button @onclick="RedirectToLogin" class="btn btn-secondary">Zaloguj się !</button>
+            }
+        </EditForm>
+    </div>
+</body>
+
+@code {
+    private UserDto user = new UserDto();
+    private string confirmPassword;
+    private RegistrationStatus registrationStatus = RegistrationStatus.None;
+    private string registrationMessage = "";
+    private string statusClass = "";
+
+    private async Task RegisterUser()
+    {
+        if (user.Password != confirmPassword)
+        {
+            registrationStatus = RegistrationStatus.Error;
+            registrationMessage = "Podane hasła nie są identyczne.";
+            statusClass = "alert-danger";
+            return;
+        }
+
+        try
+        {
+            var registrationResult = await UserService.Register(user);
+
+            if (registrationResult.Successful)
+            {
+                registrationStatus = RegistrationStatus.Success;
+                registrationMessage = registrationResult.Message;
+                statusClass = "alert-success";
+            }
+            else
+            {
+                registrationStatus = RegistrationStatus.Error;
+                registrationMessage = registrationResult.Message;
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            registrationStatus = RegistrationStatus.Error;
+            registrationMessage = $"Błąd serwera: {ex.Message}";
+            statusClass = "alert-danger";
+        }
+    }
+
+    public enum RegistrationStatus
+    {
+        None,
+        Success,
+        Error
+    }
+
+    private async Task RedirectToLogin()
+    {
+        NavigationManager.NavigateTo("/Login");
+    }
+}

@@ -1,0 +1,28 @@
+﻿@page "/repairorders"
+@using WebApp.Shared.Dto
+@using WebApp.Client.Services
+@inject HttpClient Http
+<h3>Repair Orders</h3>
+
+@if (repairOrders == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var order in repairOrders)
+        {
+            <li>Order ID: @order.Id, Vehicle ID: @order.VehicleId, Status: @order.Status</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<RepairOrderDto>? repairOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        repairOrders = await Http.GetFromJsonAsync<List<RepairOrderDto>>("api/repairorders");
+    }
+}

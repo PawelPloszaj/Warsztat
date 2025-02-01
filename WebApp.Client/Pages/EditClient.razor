@@ -1,0 +1,41 @@
+﻿@page "/edit-client/{id:int}"
+@using WebApp.Client.Services
+@using WebApp.Shared.Dto
+@inject ClientService ClientService
+@inject NavigationManager Navigation
+@code {
+    [Parameter] public int? Id { get; set; }
+    private ClientDto client = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var clients = await ClientService.GetClientsAsync();
+        client = clients.FirstOrDefault(c => c.Id == Id) ?? new ClientDto();
+    }
+
+    private async Task SaveClient()
+    {
+        await ClientService.UpdateClientAsync(client);
+        Navigation.NavigateTo("/clients");
+    }
+}
+
+<h3>Edit Client</h3>
+<div>
+    <label>First Name:</label>
+    <input @bind="client.FirstName" />
+</div>
+<div>
+    <label>Last Name:</label>
+    <input @bind="client.LastName" />
+</div>
+<div>
+    <label>Address:</label>
+    <input @bind="client.Address" />
+</div>
+<div>
+    <label>Phone:</label>
+    <input @bind="client.Phone" />
+</div>
+
+<button @onclick="SaveClient">Save</button>
