@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Nowy Profil",
+    "Projects": [
+      {
+        "Path": "WebApp.Server\\WebApp.Server.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "WebApp.Client\\WebApp.Client.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "WebApp.Shared\\WebApp.Shared.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
