@@ -38,7 +38,7 @@ else
                     <td>@repair.Id</td>
                     <td>@repair.Description</td>
                     <td>@repair.RepairDate.ToShortDateString()</td>
-                    <td>$@repair.Cost</td>
+                    <td>@repair.Cost PLN</td>
                     <td>@repair.RepairOrderId</td>
                     <td>
                         <button @onclick="() => EditRepair(repair.Id)">Edit</button>

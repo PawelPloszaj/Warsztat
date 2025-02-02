@@ -17,6 +17,7 @@
         <InputText @bind-Value="newMechanic.LastName" />
     </div>
     <button type="submit">Add</button>
+    <button @onclick="@(() => Navigation.NavigateTo("/mechanics"))">Cancel</button>
 </EditForm>
 
 @code {

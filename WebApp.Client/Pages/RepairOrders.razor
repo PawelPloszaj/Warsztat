@@ -2,6 +2,7 @@
 @using WebApp.Client.Services
 @using WebApp.Shared.Dto
 @inject RepairOrderService RepairOrderService
+@inject VehicleService VehicleService
 @inject NavigationManager Navigation
 
 <h3>Repair Orders</h3>
@@ -40,6 +41,7 @@ else
                 <th>Vehicle</th>
                 <th>Status</th>
                 <th>Start Date</th>
+                <th>End Date</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -48,9 +50,10 @@ else
             {
                 <tr>
                     <td>@order.Id</td>
-                    <td>@order.VehicleId</td>
+                    <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
                     <td>@order.Status</td>
                     <td>@order.StartDate.ToShortDateString()</td>
+                    <td>@order.EndDate.ToString()</td>
                     <td>
                         <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
                         <button class="delete-button" @onclick="@(() => DeleteRepairOrder(order.Id))">Delete</button>
@@ -66,6 +69,7 @@ else
     private List<RepairOrderDto>? filteredOrders;
     private string selectedStatus = "";
     private DateTime? selectedDate;
+    private List<VehicleDto> vehicles = new List<VehicleDto>();
 
     private string SelectedStatus
     {
@@ -91,6 +95,17 @@ else
     {
         allOrders = await RepairOrderService.GetRepairOrdersAsync();
         FilterOrders();
+        vehicles = await VehicleService.GetVehiclesAsync();
+    }
+
+    private string GetVehicleRegistrationNumber(int vehicleId)
+    {
+        var vehicle = vehicles.FirstOrDefault(v => v.Id == vehicleId);
+        if (vehicle != null)
+        {
+            return $"ID:{vehicle.Id} - {vehicle.Brand} {vehicle.Model} ({vehicle.Year}) - {vehicle.LicensePlate}";
+        }
+        return "Unknown Vehicle";
     }
 
     private void FilterOrders()

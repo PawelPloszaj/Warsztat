@@ -8,42 +8,108 @@
 @inject HttpClient HttpClient
 @inject UserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RepairOrderService RepairOrderService
+@inject NavigationManager Navigation
+@inject VehicleService VehicleService
 
 <PageTitle>Home</PageTitle>
 
 <style>
-.center {
-  margin: auto;
-}
-img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-table, th, td {
-  border:1px solid black;
-}
+    .center {
+        margin: auto;
+    }
+
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+    }
 </style>
 
 <AuthorizeView Context="authContext">
     <Authorized>
         <style>
-            body { background: white !important; }
+            body {
+                background: white !important;
+            }
         </style>
         <div style="text-align: center;">
             <h1>Warsztat Samochodowy</h1>
-            @if (state != null && state.User.IsInRole("admin"))
+            @if (openOrders == null || closedOrders == null)
+            {
+                <p>Loading...</p>
+            }
+            else
+            {
+                <h4>Open Orders</h4>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in openOrders)
                         {
-                            
+                            <tr>
+                                <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
+                                <td>@order.Status</td>
+                                <td>@order.StartDate.ToShortDateString()</td>
+                                <td>
+                                    <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
+                                </td>
+                            </tr>
                         }
+                    </tbody>
+                </table>
+
+                <h4>Closed Orders</h4>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in closedOrders)
+                        {
+                            <tr>
+                                <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
+                                <td>@order.Status</td>
+                                <td>@order.StartDate.ToShortDateString()</td>
+                                <td>
+                                    <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            @if (state != null && state.User.IsInRole("admin"))
+            {
+
+            }
         </div>
-        <br/>
- 
+        <br />
+
     </Authorized>
     <NotAuthorized>
-            <style>
-                body { background: red !important; }
-            </style>
+        <style>
+            body {
+                background: red !important;
+            }
+        </style>
         <div class="center">
             <img src="/Res/sotp.png" id="sotp" width="90%" height="90%">
         </div>
@@ -55,19 +121,30 @@ table, th, td {
     private ModalDialog EditDialog { get; set; }
     public string userName = "";
     AuthenticationState? state = null;
-    
+
     public string data = "";
     private EditContext? editContext;
-    
+
+    private List<RepairOrderDto>? openOrders;
+    private List<RepairOrderDto>? closedOrders;
+    private List<VehicleDto> vehicles = new List<VehicleDto>();
+
     protected override async Task OnInitializedAsync()
     {
         state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (!state.User.Claims.Any())
-        {
-            return;
-        }
-        
+        var orders = await RepairOrderService.GetRepairOrdersAsync();
+        openOrders = orders.Where(o => o.Status != "Completed").ToList();
+        closedOrders = orders.Where(o => o.Status == "Completed").ToList();
+        vehicles = await VehicleService.GetVehiclesAsync();
     }
 
-
+    private string GetVehicleRegistrationNumber(int vehicleId)
+    {
+        var vehicle = vehicles.FirstOrDefault(v => v.Id == vehicleId);
+        if (vehicle != null)
+        {
+            return $"{vehicle.Brand} {vehicle.Model} ({vehicle.Year}) - {vehicle.LicensePlate}";
+        }
+        return "Unknown Vehicle";
+    }
 }
