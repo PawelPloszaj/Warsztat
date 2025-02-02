@@ -30,4 +30,34 @@ public class HistoryController : ControllerBase
 
         return Ok(history);
     }
+
+    [HttpGet("vehicle/{vehicleId}")]
+    public async Task<ActionResult<IEnumerable<RepairOrder>>> GetRepairOrdersForVehicle(int vehicleId)
+    {
+        var repairOrders = await _context.RepairOrders
+            .Where(ro => ro.VehicleId == vehicleId)
+            .ToListAsync();
+
+        return Ok(repairOrders);
+    }
+
+    [HttpGet("repairorder/{repairOrderId}")]
+    public async Task<ActionResult<IEnumerable<Repair>>> GetRepairsForRepairOrder(int repairOrderId)
+    {
+        var repairs = await _context.Repairs
+            .Where(r => r.RepairOrderId == repairOrderId)
+            .ToListAsync();
+
+        return Ok(repairs);
+    }
+
+    [HttpGet("repair/{repairId}/parts")]
+    public async Task<ActionResult<IEnumerable<Part>>> GetPartsForRepair(int repairId)
+    {
+        var parts = await _context.Parts
+            .Where(p => p.RepairId == repairId)
+            .ToListAsync();
+
+        return Ok(parts);
+    }
 }
