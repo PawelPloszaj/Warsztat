@@ -11,9 +11,10 @@
     <button class="add-button" @onclick="@(() => Navigation.NavigateTo("/add-repairorder"))">+</button>
 </div>
 
+<!-- Filtry -->
 <div>
     <label>Status:</label>
-    <select @bind="selectedStatus" @bind:event="onchange">
+    <select @bind="SelectedStatus">
         <option value="">All</option>
         <option value="Open">Open</option>
         <option value="In Progress">In Progress</option>
@@ -21,7 +22,7 @@
     </select>
 
     <label>Start Date:</label>
-    <input type="date" @bind="selectedDate" @bind:event="onchange" />
+    <input type="datetime" @bind="SelectedDateString" />
 </div>
 
 @if (filteredOrders == null)
@@ -46,14 +47,14 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var order in filteredOrders)
+            @foreach (var order in FilteredOrders)
             {
                 <tr>
                     <td>@order.Id</td>
                     <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
                     <td>@order.Status</td>
-                    <td>@order.StartDate.ToShortDateString()</td>
-                    <td>@order.EndDate.ToString()</td>
+                    <td>@order.StartDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(order.EndDate.HasValue ? order.EndDate.Value.ToString("yyyy-MM-dd HH:mm") : "Not Set")</td>
                     <td>
                         <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
                         <button class="delete-button" @onclick="@(() => DeleteRepairOrder(order.Id))">Delete</button>
@@ -65,11 +66,12 @@ else
 }
 
 @code {
-    private List<RepairOrderDto>? allOrders;
+    private List<RepairOrderDto>? repairOrders;
     private List<RepairOrderDto>? filteredOrders;
+    private List<VehicleDto> vehicles = new();
+
     private string selectedStatus = "";
     private DateTime? selectedDate;
-    private List<VehicleDto> vehicles = new List<VehicleDto>();
 
     private string SelectedStatus
     {
@@ -81,48 +83,72 @@ else
         }
     }
 
-    private DateTime? SelectedDate
+    private string SelectedDateString
     {
-        get => selectedDate;
+        get => selectedDate.HasValue ? selectedDate.Value.ToString("yyyy-MM-ddTHH:mm") : "";
         set
         {
-            selectedDate = value;
+            if (DateTime.TryParse(value, out var parsedDate))
+            {
+                selectedDate = parsedDate;
+            }
+            else
+            {
+                selectedDate = null;
+            }
             FilterOrders();
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        allOrders = await RepairOrderService.GetRepairOrdersAsync();
-        FilterOrders();
-        vehicles = await VehicleService.GetVehiclesAsync();
+        await LoadRepairOrders();
+    }
+
+    private async Task LoadRepairOrders()
+    {
+        try
+        {
+            repairOrders = await RepairOrderService.GetRepairOrdersAsync();
+            vehicles = await VehicleService.GetVehiclesAsync();
+            FilterOrders();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
     }
 
     private string GetVehicleRegistrationNumber(int vehicleId)
     {
         var vehicle = vehicles.FirstOrDefault(v => v.Id == vehicleId);
-        if (vehicle != null)
-        {
-            return $"ID:{vehicle.Id} - {vehicle.Brand} {vehicle.Model} ({vehicle.Year}) - {vehicle.LicensePlate}";
-        }
-        return "Unknown Vehicle";
+        return vehicle != null
+            ? $"ID:{vehicle.Id} - {vehicle.Brand} {vehicle.Model} ({vehicle.Year}) - {vehicle.LicensePlate}"
+            : "Unknown Vehicle";
     }
 
     private void FilterOrders()
     {
-        filteredOrders = allOrders
-            ?.Where(o => (string.IsNullOrEmpty(selectedStatus) || o.Status == selectedStatus)
-                      && (!selectedDate.HasValue || o.StartDate.Date == selectedDate.Value.Date))
+        if (repairOrders == null)
+        {
+            filteredOrders = new List<RepairOrderDto>();
+            return;
+        }
+
+        filteredOrders = repairOrders
+            .Where(o => (string.IsNullOrEmpty(SelectedStatus) || o.Status.Equals(SelectedStatus, StringComparison.OrdinalIgnoreCase)) &&
+                        (!selectedDate.HasValue || o.StartDate >= selectedDate.Value))
             .ToList();
     }
+
+    private List<RepairOrderDto> FilteredOrders => filteredOrders ?? new List<RepairOrderDto>();
 
     private async Task DeleteRepairOrder(int id)
     {
         try
         {
             await RepairOrderService.DeleteRepairOrderAsync(id);
-            allOrders = await RepairOrderService.GetRepairOrdersAsync();
-            FilterOrders();
+            await LoadRepairOrders();
         }
         catch (Exception ex)
         {

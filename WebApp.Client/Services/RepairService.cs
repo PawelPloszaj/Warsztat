@@ -61,4 +61,13 @@ public class RepairService
             throw new Exception($"Error assigning mechanic: {response.StatusCode} - {errorMessage}");
         }
     }
+    public async Task<List<MechanicDto>> GetAssignedMechanicsAsync(int repairId)
+    {
+        return await _httpClient.GetFromJsonAsync<List<MechanicDto>>($"api/repairs/{repairId}/mechanics") ?? new List<MechanicDto>();
+    }
+    public async Task RemoveMechanicFromRepairAsync(int repairId, int mechanicId)
+    {
+        var response = await _httpClient.DeleteAsync($"api/repairs/{repairId}/remove-mechanic/{mechanicId}");
+        response.EnsureSuccessStatusCode();
+    }
 }

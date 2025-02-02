@@ -134,6 +134,43 @@ public class RepairsController : ControllerBase
     {
         return _context.Repairs.Any(e => e.Id == id);
     }
+
+    [HttpGet("{repairId}/mechanics")]
+    public async Task<ActionResult<IEnumerable<Mechanic>>> GetAssignedMechanics(int repairId)
+    {
+        var repair = await _context.Repairs
+            .Include(r => r.Mechanics)
+            .FirstOrDefaultAsync(r => r.Id == repairId);
+
+        if (repair == null)
+        {
+            return NotFound($"Repair with ID {repairId} not found.");
+        }
+
+        return Ok(repair.Mechanics.ToList());
+    }
+
+
+
+    [HttpDelete("{repairId}/remove-mechanic/{mechanicId}")]
+    public async Task<IActionResult> RemoveMechanicFromRepair(int repairId, int mechanicId)
+    {
+        var repair = await _context.Repairs
+            .Include(r => r.Mechanics)
+            .FirstOrDefaultAsync(r => r.Id == repairId);
+
+        if (repair == null)
+            return NotFound("Repair not found.");
+
+        var mechanic = repair.Mechanics.FirstOrDefault(m => m.Id == mechanicId);
+        if (mechanic == null)
+            return NotFound("Mechanic not assigned to this repair.");
+
+        repair.Mechanics.Remove(mechanic);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
 
 public class AssignMechanicDto

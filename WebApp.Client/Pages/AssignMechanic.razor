@@ -12,6 +12,7 @@
     <p style="color: red">@errorMessage</p>
 }
 
+<!-- Wybór naprawy i mechanika -->
 <div>
     <label>Select Repair:</label>
     <select @bind="selectedRepairId">
@@ -35,14 +36,78 @@
 </div>
 
 <button @onclick="AssignMechanicTask">Assign</button>
-<button @onclick="@(() => Navigation.NavigateTo("/repairs"))">Cancel</button>
+
+<h2 style="margin-top: 20px;">View Assigned Mechanics</h2>
+
+<div>
+    <label>Select Repair :</label>
+    <select @bind="SelectedRepairForView" @bind:event="onchange">
+        <option value="0">-- Select Repair --</option>
+        @foreach (var repair in repairs)
+        {
+            <option value="@repair.Id">@repair.Description</option>
+        }
+    </select>
+</div>
+
+<h3 style="margin-top: 20px;">Assigned Mechanics to Repair: <span style="color: #009879;">@SelectedRepairName</span></h3>
+
+@if (assignedMechanics == null)
+{
+    <p>Select a repair to see assigned mechanics.</p>
+}
+else if (assignedMechanics.Count == 0)
+{
+    <p>No mechanics assigned to this repair.</p>
+}
+else
+{
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var mechanic in assignedMechanics)
+            {
+                <tr>
+                    <td>@mechanic.Id</td>
+                    <td>@mechanic.FirstName @mechanic.LastName</td>
+                    <td>
+                        <button class="delete-button" @onclick="() => RemoveMechanic(mechanic.Id)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button @onclick="@(() => Navigation.NavigateTo("/repairs"))">Back to Repairs</button>
 
 @code {
     private List<MechanicDto> mechanics = new();
     private List<RepairDto> repairs = new();
+    private List<MechanicDto> assignedMechanics = new();
+
     private int selectedRepairId;
     private int selectedMechanicId;
+    private int selectedRepairForView;
     private string? errorMessage;
+
+    private int SelectedRepairForView
+    {
+        get => selectedRepairForView;
+        set
+        {
+            selectedRepairForView = value;
+            _ = LoadAssignedMechanicsTask();
+        }
+    }
+
+    private string SelectedRepairName => repairs.FirstOrDefault(r => r.Id == selectedRepairForView)?.Description ?? "None";
 
     protected override async Task OnInitializedAsync()
     {
@@ -54,6 +119,25 @@
         catch (Exception ex)
         {
             errorMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task LoadAssignedMechanicsTask()
+    {
+        if (selectedRepairForView == 0)
+        {
+            assignedMechanics = new();
+            return;
+        }
+
+        try
+        {
+            assignedMechanics = await RepairService.GetAssignedMechanicsAsync(selectedRepairForView);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading assigned mechanics: {ex.Message}";
         }
     }
 
@@ -70,11 +154,24 @@
         try
         {
             await RepairService.AssignMechanicToRepairAsync(selectedRepairId, selectedMechanicId);
-            Navigation.NavigateTo("/repairs");
+            await LoadAssignedMechanicsTask();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error assigning mechanic: {ex.Message}";
+        }
+    }
+
+    private async Task RemoveMechanic(int mechanicId)
+    {
+        try
+        {
+            await RepairService.RemoveMechanicFromRepairAsync(selectedRepairForView, mechanicId);
+            await LoadAssignedMechanicsTask();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error removing mechanic: {ex.Message}";
         }
     }
 }
