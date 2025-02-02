@@ -43,6 +43,8 @@ public class RepairOrdersController : ControllerBase
                 return BadRequest("VehicleId is required.");
             }
 
+            repairOrder.StartDate = DateTime.SpecifyKind(repairOrder.StartDate, DateTimeKind.Utc);
+
             _context.RepairOrders.Add(repairOrder);
             await _context.SaveChangesAsync();
 
@@ -62,6 +64,9 @@ public class RepairOrdersController : ControllerBase
         {
             return BadRequest("Mismatched Repair Order ID.");
         }
+
+        repairOrder.StartDate = DateTime.SpecifyKind(repairOrder.StartDate, DateTimeKind.Utc);
+        repairOrder.EndDate = DateTime.SpecifyKind((DateTime)repairOrder.EndDate, DateTimeKind.Utc);
 
         _context.Entry(repairOrder).State = EntityState.Modified;
 

@@ -6,6 +6,11 @@
 
 <h3>Add Mechanic</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 <EditForm Model="@newMechanic" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <div>
@@ -21,10 +26,25 @@
 </EditForm>
 
 @code {
-    private MechanicDto newMechanic = new MechanicDto();
+    private MechanicDto newMechanic = new();
+    private string? errorMessage;
 
     private async Task HandleValidSubmit()
     {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(newMechanic.FirstName))
+        {
+            errorMessage = "First name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newMechanic.LastName))
+        {
+            errorMessage = "Last name is required.";
+            return;
+        }
+
         try
         {
             await MechanicService.AddMechanicAsync(newMechanic);
@@ -32,7 +52,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error adding mechanic: {ex.Message}");
+            errorMessage = $"Error adding mechanic: {ex.Message}";
         }
     }
 }

@@ -52,6 +52,7 @@
                             <th>Vehicle</th>
                             <th>Status</th>
                             <th>Start Date</th>
+                            <th>End Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -62,6 +63,7 @@
                                 <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
                                 <td>@order.Status</td>
                                 <td>@order.StartDate.ToShortDateString()</td>
+                                <td>@(order.EndDate.HasValue ? order.EndDate.Value.ToShortDateString() : "Not Set")</td>
                                 <td>
                                     <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
                                 </td>
@@ -77,6 +79,7 @@
                             <th>Vehicle</th>
                             <th>Status</th>
                             <th>Start Date</th>
+                            <th>End Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -87,6 +90,7 @@
                                 <td>@GetVehicleRegistrationNumber(order.VehicleId)</td>
                                 <td>@order.Status</td>
                                 <td>@order.StartDate.ToShortDateString()</td>
+                                <td>@(order.EndDate.HasValue ? order.EndDate.Value.ToShortDateString() : "Not Set")</td>
                                 <td>
                                     <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
                                 </td>

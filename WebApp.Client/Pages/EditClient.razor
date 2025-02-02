@@ -3,39 +3,116 @@
 @using WebApp.Shared.Dto
 @inject ClientService ClientService
 @inject NavigationManager Navigation
+
+<h3>Edit Client</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+@if (client == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <label>First Name:</label>
+        <input @bind="client.FirstName" />
+    </div>
+    <div>
+        <label>Last Name:</label>
+        <input @bind="client.LastName" />
+    </div>
+    <div>
+        <label>Address:</label>
+        <input @bind="client.Address" />
+    </div>
+    <div>
+        <label>Phone:</label>
+        <input @bind="client.Phone" />
+    </div>
+
+    <button @onclick="SaveClient">Save</button>
+    <button @onclick="@(() => Navigation.NavigateTo("/clients"))">Cancel</button>
+}
+
 @code {
     [Parameter] public int? Id { get; set; }
-    private ClientDto client = new();
+    private ClientDto? client;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        var clients = await ClientService.GetClientsAsync();
-        client = clients.FirstOrDefault(c => c.Id == Id) ?? new ClientDto();
+        if (Id == null)
+        {
+            errorMessage = "Invalid client ID.";
+            return;
+        }
+
+        try
+        {
+            client = await ClientService.GetClientByIdAsync(Id.Value);
+            if (client == null)
+            {
+                errorMessage = "Client not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading client: {ex.Message}";
+        }
     }
 
     private async Task SaveClient()
     {
-        await ClientService.UpdateClientAsync(client);
-        Navigation.NavigateTo("/clients");
+        errorMessage = null;
+
+        if (client == null)
+        {
+            errorMessage = "No client data to save.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.FirstName))
+        {
+            errorMessage = "First name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.LastName))
+        {
+            errorMessage = "Last name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.Address))
+        {
+            errorMessage = "Address is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.Phone))
+        {
+            errorMessage = "Phone number is required.";
+            return;
+        }
+
+        if (client.Phone.Length > 13)
+        {
+            errorMessage = "Phone number cannot be longer than 13 characters.";
+            return;
+        }
+
+        try
+        {
+            await ClientService.UpdateClientAsync(client);
+            Navigation.NavigateTo("/clients");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating client: {ex.Message}";
+        }
     }
 }
-
-<h3>Edit Client</h3>
-<div>
-    <label>First Name:</label>
-    <input @bind="client.FirstName" />
-</div>
-<div>
-    <label>Last Name:</label>
-    <input @bind="client.LastName" />
-</div>
-<div>
-    <label>Address:</label>
-    <input @bind="client.Address" />
-</div>
-<div>
-    <label>Phone:</label>
-    <input @bind="client.Phone" />
-</div>
-
-<button @onclick="SaveClient">Save</button>

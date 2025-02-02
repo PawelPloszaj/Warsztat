@@ -6,6 +6,11 @@
 
 <h3>Edit Repair</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 @if (repair == null)
 {
     <p>Loading...</p>
@@ -18,7 +23,7 @@ else
     </div>
     <div>
         <label>Repair Date:</label>
-        <input type="datetime" @bind="repair.RepairDate" />
+        <input type="datetime-local" @bind="repair.RepairDate" />
     </div>
     <div>
         <label>Cost:</label>
@@ -32,15 +37,54 @@ else
 @code {
     [Parameter] public int Id { get; set; }
     private RepairDto? repair;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        repair = await RepairService.GetRepairByIdAsync(Id);
+        try
+        {
+            repair = await RepairService.GetRepairByIdAsync(Id);
+            if (repair == null)
+            {
+                errorMessage = "Repair not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading repair: {ex.Message}";
+        }
     }
 
     private async Task SaveRepair()
     {
-        await RepairService.UpdateRepairAsync(repair);
-        Navigation.NavigateTo("/repairs");
+        errorMessage = null;
+
+        if (repair == null)
+        {
+            errorMessage = "No repair data to save.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(repair.Description))
+        {
+            errorMessage = "Description is required.";
+            return;
+        }
+
+        if (repair.Cost <= 0)
+        {
+            errorMessage = "Cost must be greater than 0.";
+            return;
+        }
+
+        try
+        {
+            await RepairService.UpdateRepairAsync(repair);
+            Navigation.NavigateTo("/repairs");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating repair: {ex.Message}";
+        }
     }
 }

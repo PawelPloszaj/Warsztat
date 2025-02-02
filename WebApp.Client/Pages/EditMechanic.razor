@@ -6,6 +6,11 @@
 
 <h3>Edit Mechanic</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 @if (mechanic == null)
 {
     <p>Loading...</p>
@@ -27,35 +32,51 @@ else
 @code {
     [Parameter] public int? Id { get; set; }
     private MechanicDto? mechanic;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         if (Id == null)
         {
-            Navigation.NavigateTo("/mechanics");
+            errorMessage = "Invalid mechanic ID.";
             return;
         }
 
         try
         {
-            var mechanics = await MechanicService.GetMechanicsAsync();
-            mechanic = mechanics.FirstOrDefault(m => m.Id == Id.Value);
-
+            mechanic = await MechanicService.GetMechanicByIdAsync(Id.Value);
             if (mechanic == null)
             {
-                Navigation.NavigateTo("/mechanics");
+                errorMessage = "Mechanic not found.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading mechanic: {ex.Message}");
-            Navigation.NavigateTo("/mechanics");
+            errorMessage = $"Error loading mechanic: {ex.Message}";
         }
     }
 
     private async Task SaveMechanic()
     {
-        if (mechanic == null) return;
+        errorMessage = null;
+
+        if (mechanic == null)
+        {
+            errorMessage = "No mechanic data to save.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(mechanic.FirstName))
+        {
+            errorMessage = "First name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(mechanic.LastName))
+        {
+            errorMessage = "Last name is required.";
+            return;
+        }
 
         try
         {
@@ -64,7 +85,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error updating mechanic: {ex.Message}");
+            errorMessage = $"Error updating mechanic: {ex.Message}";
         }
     }
 }

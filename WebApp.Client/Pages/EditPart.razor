@@ -6,6 +6,11 @@
 
 <h3>Edit Part</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 @if (part == null)
 {
     <p>Loading...</p>
@@ -32,15 +37,60 @@ else
 @code {
     [Parameter] public int Id { get; set; }
     private PartDto? part;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        part = await PartService.GetPartByIdAsync(Id);
+        try
+        {
+            part = await PartService.GetPartByIdAsync(Id);
+            if (part == null)
+            {
+                errorMessage = "Part not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading part: {ex.Message}";
+        }
     }
 
     private async Task SavePart()
     {
-        await PartService.UpdatePartAsync(part);
-        Navigation.NavigateTo("/parts");
+        errorMessage = null;
+
+        if (part == null)
+        {
+            errorMessage = "No part data to save.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(part.Name))
+        {
+            errorMessage = "Name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(part.Manufacturer))
+        {
+            errorMessage = "Manufacturer is required.";
+            return;
+        }
+
+        if (part.Price <= 0)
+        {
+            errorMessage = "Price must be greater than 0.";
+            return;
+        }
+
+        try
+        {
+            await PartService.UpdatePartAsync(part);
+            Navigation.NavigateTo("/parts");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating part: {ex.Message}";
+        }
     }
 }

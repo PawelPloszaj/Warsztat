@@ -7,6 +7,11 @@
 
 <h3>Edit Vehicle</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 @if (vehicle == null)
 {
     <p>Loading...</p>
@@ -32,12 +37,14 @@ else
     <div>
         <label>Client:</label>
         <select @bind="vehicle.ClientId">
+            <option value="0">-- Select Client --</option>
             @foreach (var client in clients)
             {
                 <option value="@client.Id">@client.FirstName @client.LastName</option>
             }
         </select>
     </div>
+
     <button @onclick="SaveVehicle">Save</button>
 }
 
@@ -45,38 +52,64 @@ else
     [Parameter] public int? Id { get; set; }
     private VehicleDto? vehicle;
     private List<ClientDto> clients = new();
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         if (Id == null)
         {
-            Navigation.NavigateTo("/vehicles");
+            errorMessage = "Invalid vehicle ID.";
             return;
         }
 
         try
         {
-            var vehicles = await VehicleService.GetVehiclesAsync();
-            vehicle = vehicles.FirstOrDefault(v => v.Id == Id.Value);
-
+            vehicle = await VehicleService.GetVehicleByIdAsync(Id.Value);
+            clients = await ClientService.GetClientsAsync();
             if (vehicle == null)
             {
-                Navigation.NavigateTo("/vehicles");
-                return;
+                errorMessage = "Vehicle not found.";
             }
-
-            clients = await ClientService.GetClientsAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading vehicle: {ex.Message}");
-            Navigation.NavigateTo("/vehicles");
+            errorMessage = $"Error loading vehicle: {ex.Message}";
         }
     }
 
     private async Task SaveVehicle()
     {
-        if (vehicle == null) return;
+        errorMessage = null;
+
+        if (vehicle == null)
+        {
+            errorMessage = "No vehicle data to save.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.LicensePlate))
+        {
+            errorMessage = "License plate is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.Brand))
+        {
+            errorMessage = "Brand is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vehicle.Model))
+        {
+            errorMessage = "Model is required.";
+            return;
+        }
+
+        if (vehicle.Year <= 0)
+        {
+            errorMessage = "Year must be valid.";
+            return;
+        }
 
         try
         {
@@ -85,7 +118,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error updating vehicle: {ex.Message}");
+            errorMessage = $"Error updating vehicle: {ex.Message}";
         }
     }
 }

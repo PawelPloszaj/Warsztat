@@ -19,6 +19,11 @@ public class MechanicService
         return await _httpClient.GetFromJsonAsync<List<MechanicDto>>("api/mechanics") ?? new List<MechanicDto>();
     }
 
+    public async Task<MechanicDto?> GetMechanicByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<MechanicDto>($"api/mechanics/{id}");
+    }
+
     public async Task<Dictionary<int, List<RepairDto>>> GetRepairsByMechanicAsync()
     {
         return await _httpClient.GetFromJsonAsync<Dictionary<int, List<RepairDto>>>("api/mechanics/repairs");

@@ -17,6 +17,11 @@ public class ClientService
         return await _httpClient.GetFromJsonAsync<List<ClientDto>>("api/clients") ?? new List<ClientDto>();
     }
 
+    public async Task<ClientDto?> GetClientByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<ClientDto>($"api/clients/{id}");
+    }
+
     public async Task AddClientAsync(ClientDto client)
     {
         var response = await _httpClient.PostAsJsonAsync("api/clients", client);

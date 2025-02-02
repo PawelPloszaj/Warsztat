@@ -7,6 +7,8 @@
     <nav class="sidebar">
         <ul>
             <li><NavLink href="/" Match="NavLinkMatch.All">Home</NavLink></li>
+             <AuthorizeView>
+                <Authorized>
             <li><NavLink href="/clients">Clients</NavLink></li>
             <li><NavLink href="/vehicles">Vehicles</NavLink></li>
             <li><NavLink href="/mechanics">Mechanics</NavLink></li>
@@ -14,6 +16,8 @@
             <li><NavLink href="/repairorders">Repair Orders</NavLink></li>
             <li><NavLink href="/repairs">Repairs</NavLink></li>
             <li><NavLink href="/parts">Parts</NavLink></li>
+                </Authorized>
+            </AuthorizeView>
         </ul>
     </nav>
 

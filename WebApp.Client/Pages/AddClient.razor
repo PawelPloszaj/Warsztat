@@ -6,6 +6,11 @@
 
 <h3>Add Client</h3>
 
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
 <div>
     <label>First Name:</label>
     <input @bind="client.FirstName" />
@@ -28,10 +33,50 @@
 
 @code {
     private ClientDto client = new();
+    private string? errorMessage;
 
     private async Task SaveClient()
     {
-        await ClientService.AddClientAsync(client);
-        Navigation.NavigateTo("/clients");
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(client.FirstName))
+        {
+            errorMessage = "First name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.LastName))
+        {
+            errorMessage = "Last name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.Address))
+        {
+            errorMessage = "Address is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.Phone))
+        {
+            errorMessage = "Phone number is required.";
+            return;
+        }
+
+        if (client.Phone.Length > 13)
+        {
+            errorMessage = "Phone number cannot be longer than 13 characters.";
+            return;
+        }
+
+        try
+        {
+            await ClientService.AddClientAsync(client);
+            Navigation.NavigateTo("/clients");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error adding client: {ex.Message}";
+        }
     }
 }

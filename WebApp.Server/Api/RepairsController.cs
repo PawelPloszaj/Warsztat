@@ -1,6 +1,7 @@
 ﻿using WebApp.Server.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Client.Pages;
 
 namespace WebApp.Server.Api;
 
@@ -53,7 +54,7 @@ public class RepairsController : ControllerBase
         {
             return BadRequest($"RepairOrder with ID {repair.RepairOrderId} does not exist.");
         }
-
+        repair.RepairDate = DateTime.SpecifyKind(repair.RepairDate, DateTimeKind.Utc);
         _context.Repairs.Add(repair);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetRepair), new { id = repair.Id }, repair);
@@ -66,6 +67,8 @@ public class RepairsController : ControllerBase
         {
             return BadRequest("Repair ID mismatch.");
         }
+
+        repair.RepairDate = DateTime.SpecifyKind(repair.RepairDate, DateTimeKind.Utc);
 
         _context.Entry(repair).State = EntityState.Modified;
 

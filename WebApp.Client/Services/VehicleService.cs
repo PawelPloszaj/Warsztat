@@ -23,6 +23,11 @@ public class VehicleService
         return await _httpClient.GetFromJsonAsync<List<VehicleDto>>("api/vehicles") ?? new List<VehicleDto>();
     }
 
+    public async Task<VehicleDto?> GetVehicleByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<VehicleDto>($"api/vehicles/{id}");
+    }
+
     public async Task AddVehicleAsync(VehicleDto vehicle)
     {
         await _httpClient.PostAsJsonAsync("api/vehicles", vehicle);
