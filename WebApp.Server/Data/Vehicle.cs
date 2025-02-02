@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Server.Data;
 
+[Index(nameof(LicensePlate), IsUnique = true)]
 public class Vehicle
 {
     [Key] public int Id { get; set; }

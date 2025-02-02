@@ -67,6 +67,9 @@ namespace WebApp.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Clients");
                 });
 
@@ -270,6 +273,9 @@ namespace WebApp.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
+
+                    b.HasIndex("LicensePlate")
+                        .IsUnique();
 
                     b.ToTable("Vehicles");
                 });

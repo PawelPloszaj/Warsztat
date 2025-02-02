@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Server.Data;
 
+[Index(nameof(Phone), IsUnique = true)]
 public class Client
 {
     [Key] public int Id { get; set; }
