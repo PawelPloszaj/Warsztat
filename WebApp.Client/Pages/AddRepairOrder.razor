@@ -18,7 +18,11 @@
 </div>
 <div>
     <label>Status:</label>
-    <input @bind="repairOrder.Status" />
+    <select @bind="repairOrder.Status">
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+    </select>
 </div>
 <div>
     <label>Vehicle:</label>

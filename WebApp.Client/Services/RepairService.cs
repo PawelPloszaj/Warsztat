@@ -17,12 +17,18 @@ public class RepairService
         return await _httpClient.GetFromJsonAsync<List<RepairDto>>("api/repairs") ?? new List<RepairDto>();
     }
 
+    public async Task<RepairDto?> GetRepairByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<RepairDto>($"api/repairs/{id}");
+    }
+
     public async Task AddRepairAsync(RepairDto repair)
     {
         var response = await _httpClient.PostAsJsonAsync("api/repairs", repair);
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Error adding repair: {response.ReasonPhrase}");
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error adding repair: {response.StatusCode} - {errorMessage}");
         }
     }
 
@@ -31,7 +37,8 @@ public class RepairService
         var response = await _httpClient.PutAsJsonAsync($"api/repairs/{repair.Id}", repair);
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Error updating repair: {response.ReasonPhrase}");
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error updating repair: {response.StatusCode} - {errorMessage}");
         }
     }
 
@@ -40,7 +47,18 @@ public class RepairService
         var response = await _httpClient.DeleteAsync($"api/repairs/{id}");
         if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"Error deleting repair: {response.ReasonPhrase}");
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error deleting repair: {response.StatusCode} - {errorMessage}");
+        }
+    }
+
+    public async Task AssignMechanicToRepairAsync(int repairId, int mechanicId)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"api/repairs/{repairId}/assign-mechanic", new { MechanicId = mechanicId });
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Error assigning mechanic: {response.StatusCode} - {errorMessage}");
         }
     }
 }

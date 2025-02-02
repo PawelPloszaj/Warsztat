@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
 using WebApp.Shared.Dto;
 using static System.Net.WebRequestMethods;
 
@@ -17,6 +18,12 @@ public class MechanicService
     {
         return await _httpClient.GetFromJsonAsync<List<MechanicDto>>("api/mechanics") ?? new List<MechanicDto>();
     }
+
+    public async Task<Dictionary<int, List<RepairDto>>> GetRepairsByMechanicAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<Dictionary<int, List<RepairDto>>>("api/mechanics/repairs");
+    }
+
 
     public async Task AddMechanicAsync(MechanicDto mechanic)
     {

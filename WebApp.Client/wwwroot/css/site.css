@@ -1,0 +1,70 @@
+﻿.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+    .styled-table thead {
+        background-color: #1b6ec2;
+        color: white;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .styled-table tr:hover {
+        background-color: #e0e0e0;
+    }
+
+button {
+    background-color: #1b6ec2;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+    button:hover {
+        background-color: #1861ac;
+    }
+
+.add-button {
+    background-color: #1b6ec2;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    font-size: 20px;
+    cursor: pointer;
+    float: right;
+    margin-bottom: 10px;
+}
+
+    .add-button:hover {
+        background-color: #1861ac;
+    }
+
+.delete-button {
+    background-color: #c21b1b;
+}
+
+    .delete-button:hover {
+        background-color: #a81616;
+    }
+
+.header-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}

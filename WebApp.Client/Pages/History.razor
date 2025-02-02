@@ -16,19 +16,36 @@ else if (repairs.Count == 0)
 }
 else
 {
-    <ul>
-        @foreach (var repair in repairs)
-        {
-            <li>@repair.RepairDate.ToShortDateString() - @repair.Description - $@repair.Cost</li>
-        }
-    </ul>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Repair Date</th>
+                <th>Description</th>
+                <th>Cost</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var repair in repairs)
+            {
+                <tr>
+                    <td>@repair.RepairDate.ToShortDateString()</td>
+                    <td>@repair.Description</td>
+                    <td>$@repair.Cost</td>
+                    <td>
+                        <button @onclick="() => ViewDetails(repair.Id)">View Details</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 <button @onclick="@(() => Navigation.NavigateTo("/vehicles"))">Back to Vehicles</button>
 
 @code {
     [Parameter] public int? VehicleId { get; set; }
-    private List<RepairDto>? repairs = new();
+    private List<RepairDto>? repairs;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,5 +64,10 @@ else
             Console.WriteLine($"Error loading repair history: {ex.Message}");
             Navigation.NavigateTo("/vehicles");
         }
+    }
+
+    private void ViewDetails(int repairId)
+    {
+        Navigation.NavigateTo($"/repair-details/{repairId}");
     }
 }

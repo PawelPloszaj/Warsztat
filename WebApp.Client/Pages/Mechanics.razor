@@ -6,6 +6,10 @@
 
 <h3>Mechanics</h3>
 
+<div class="header-container">
+    <button class="add-button" @onclick="@(() => Navigation.NavigateTo("/add-mechanic"))">+</button>
+</div>
+
 @if (mechanics == null)
 {
     <p>Loading...</p>
@@ -16,33 +20,51 @@ else if (mechanics.Count == 0)
 }
 else
 {
-    <ul>
-        @foreach (var mechanic in mechanics)
-        {
-            <li>
-                @mechanic.FirstName @mechanic.LastName
-                <button @onclick="@(() => Navigation.NavigateTo($"/edit-mechanic/{mechanic.Id}"))">Edit</button>
-                <button @onclick="@(() => DeleteMechanic(mechanic.Id))">Delete</button>
-            </li>
-        }
-    </ul>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Assigned Repairs</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var mechanic in mechanics)
+            {
+                <tr>
+                    <td>@mechanic.Id</td>
+                    <td>@mechanic.FirstName</td>
+                    <td>@mechanic.LastName</td>
+                    <td>
+                        @if (repairsByMechanic.TryGetValue(mechanic.Id, out var repairList) && repairList.Any())
+                        {
+                            <ul>
+                                @foreach (var repair in repairList)
+                                {
+                                    <li>@repair.Description (@repair.RepairDate.ToShortDateString())</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No assigned repairs</span>
+                        }
+                    </td>
+                    <td>
+                        <button @onclick="@(() => Navigation.NavigateTo($"/edit-mechanic/{mechanic.Id}"))">Edit</button>
+                        <button class="delete-button" @onclick="() => DeleteMechanic(mechanic.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
-
-<h3>Add Mechanic</h3>
-<div>
-    <label>First Name:</label>
-    <input @bind="newMechanic.FirstName" />
-</div>
-<div>
-    <label>Last Name:</label>
-    <input @bind="newMechanic.LastName" />
-</div>
-
-<button @onclick="AddMechanic">Save</button>
 
 @code {
     private List<MechanicDto>? mechanics;
-    private MechanicDto newMechanic = new();
+    private Dictionary<int, List<RepairDto>> repairsByMechanic = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -54,30 +76,12 @@ else
         try
         {
             mechanics = await MechanicService.GetMechanicsAsync();
+
+            repairsByMechanic = await MechanicService.GetRepairsByMechanicAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching mechanics: {ex.Message}");
-        }
-    }
-
-    private async Task AddMechanic()
-    {
-        if (string.IsNullOrWhiteSpace(newMechanic.FirstName) || string.IsNullOrWhiteSpace(newMechanic.LastName))
-        {
-            Console.WriteLine("First name and last name are required.");
-            return;
-        }
-
-        try
-        {
-            await MechanicService.AddMechanicAsync(newMechanic);
-            newMechanic = new();
-            await LoadMechanics();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding mechanic: {ex.Message}");
         }
     }
 

@@ -72,6 +72,12 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 //builder.Services.AddSignalR();
 //builder.Services.AddHostedService<ServerTimeNotifier>();
 builder.Services.AddCors();

@@ -6,6 +6,10 @@
 
 <h3>Clients</h3>
 
+<div class="header-container">
+    <button class="add-button" @onclick="@(() => Navigation.NavigateTo("/add-client"))">+</button>
+</div>
+
 @if (clients == null)
 {
     <p>Loading...</p>
@@ -16,16 +20,32 @@ else if (clients.Count == 0)
 }
 else
 {
-    <ul>
-        @foreach (var client in clients)
-        {
-            <li>
-                @client.FirstName @client.LastName - @client.Phone
-                <button @onclick="@(() => Navigation.NavigateTo($"/edit-client/{client.Id}"))">Edit</button>
-                <button @onclick="() => DeleteClient(client.Id)">Delete</button>
-            </li>
-        }
-    </ul>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Phone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var client in clients)
+            {
+                <tr>
+                    <td>@client.Id</td>
+                    <td>@client.FirstName</td>
+                    <td>@client.LastName</td>
+                    <td>@client.Phone</td>
+                    <td>
+                        <button @onclick="@(() => Navigation.NavigateTo($"/edit-client/{client.Id}"))">Edit</button>
+                        <button class="delete-button" @onclick="() => DeleteClient(client.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {

@@ -55,4 +55,20 @@ public class MechanicsController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpGet("repairs")]
+    public async Task<ActionResult<Dictionary<int, List<Repair>>>> GetRepairsByMechanicAsync()
+    {
+        var repairsByMechanic = await _context.Mechanics
+            .Include(m => m.Repairs)
+            .ToListAsync();
+
+        var result = repairsByMechanic.ToDictionary(
+            mechanic => mechanic.Id,
+            mechanic => mechanic.Repairs.ToList()
+        );
+
+        return Ok(result);
+    }
+
 }

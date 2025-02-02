@@ -1,5 +1,5 @@
 ﻿namespace WebApp.Shared.Dto;
-
+using System.Text.Json.Serialization;
 public class RepairDto
 {
     public int Id { get; set; }
@@ -10,6 +10,6 @@ public class RepairDto
     public int RepairOrderId { get; set; }
 
     public List<PartDto> Parts { get; set; } = new();
-    public List<MechanicDto> Mechanics { get; set; } = new();
+    [JsonIgnore] public List<MechanicDto> Mechanics { get; set; } = new();
 }
 

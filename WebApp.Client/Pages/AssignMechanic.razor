@@ -1,0 +1,80 @@
+﻿@page "/assign-mechanic"
+@using WebApp.Client.Services
+@using WebApp.Shared.Dto
+@inject MechanicService MechanicService
+@inject RepairService RepairService
+@inject NavigationManager Navigation
+
+<h3>Assign Mechanic to Repair</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+<div>
+    <label>Select Repair:</label>
+    <select @bind="selectedRepairId">
+        <option value="0">-- Select Repair --</option>
+        @foreach (var repair in repairs)
+        {
+            <option value="@repair.Id">@repair.Description</option>
+        }
+    </select>
+</div>
+
+<div>
+    <label>Select Mechanic:</label>
+    <select @bind="selectedMechanicId">
+        <option value="0">-- Select Mechanic --</option>
+        @foreach (var mechanic in mechanics)
+        {
+            <option value="@mechanic.Id">@mechanic.FirstName @mechanic.LastName</option>
+        }
+    </select>
+</div>
+
+<button @onclick="AssignMechanicTask">Assign</button>
+<button @onclick="@(() => Navigation.NavigateTo("/repairs"))">Cancel</button>
+
+@code {
+    private List<MechanicDto> mechanics = new();
+    private List<RepairDto> repairs = new();
+    private int selectedRepairId;
+    private int selectedMechanicId;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            mechanics = await MechanicService.GetMechanicsAsync();
+            repairs = await RepairService.GetRepairsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task AssignMechanicTask()
+    {
+        errorMessage = null;
+
+        if (selectedRepairId == 0 || selectedMechanicId == 0)
+        {
+            errorMessage = "Please select a repair and a mechanic.";
+            return;
+        }
+
+        try
+        {
+            await RepairService.AssignMechanicToRepairAsync(selectedRepairId, selectedMechanicId);
+            Navigation.NavigateTo("/repairs");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error assigning mechanic: {ex.Message}";
+        }
+    }
+}

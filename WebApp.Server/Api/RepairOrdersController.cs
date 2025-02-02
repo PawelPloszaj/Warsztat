@@ -21,6 +21,13 @@ public class RepairOrdersController : ControllerBase
         return await _context.RepairOrders.ToListAsync();
     }
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult<RepairOrder>> GetRepairOrder(int id)
+    {
+        var repairOrder = await _context.RepairOrders.FindAsync(id);
+        return repairOrder == null ? NotFound() : Ok(repairOrder);
+    }
+
     [HttpPost]
     public async Task<ActionResult<RepairOrder>> AddRepairOrder(RepairOrder repairOrder)
     {
@@ -39,7 +46,7 @@ public class RepairOrdersController : ControllerBase
             _context.RepairOrders.Add(repairOrder);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetRepairOrders), new { id = repairOrder.Id }, repairOrder);
+            return CreatedAtAction(nameof(GetRepairOrder), new { id = repairOrder.Id }, repairOrder);
         }
         catch (Exception ex)
         {
@@ -51,10 +58,29 @@ public class RepairOrdersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateRepairOrder(int id, RepairOrder repairOrder)
     {
-        if (id != repairOrder.Id) return BadRequest();
+        if (id != repairOrder.Id)
+        {
+            return BadRequest("Mismatched Repair Order ID.");
+        }
 
         _context.Entry(repairOrder).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!RepairOrderExists(id))
+            {
+                return NotFound($"Repair order with ID {id} not found.");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
         return NoContent();
     }
 
@@ -62,10 +88,18 @@ public class RepairOrdersController : ControllerBase
     public async Task<IActionResult> DeleteRepairOrder(int id)
     {
         var repairOrder = await _context.RepairOrders.FindAsync(id);
-        if (repairOrder == null) return NotFound();
+        if (repairOrder == null)
+        {
+            return NotFound();
+        }
 
         _context.RepairOrders.Remove(repairOrder);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    private bool RepairOrderExists(int id)
+    {
+        return _context.RepairOrders.Any(ro => ro.Id == id);
     }
 }

@@ -1,0 +1,98 @@
+﻿@page "/edit-repairorder/{id:int}"
+@using WebApp.Client.Services
+@using WebApp.Shared.Dto
+@inject RepairOrderService RepairOrderService
+@inject VehicleService VehicleService
+@inject NavigationManager Navigation
+
+<h3>Edit Repair Order</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red">@errorMessage</p>
+}
+
+@if (repairOrder == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <label>Start Date:</label>
+        <input type="datetime" @bind="repairOrder.StartDate" />
+    </div>
+    <div>
+        <label>Status:</label>
+        <select @bind="repairOrder.Status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+        </select>
+    </div>
+    <div>
+        <label>Vehicle:</label>
+        <select @bind="repairOrder.VehicleId">
+            <option value="0">-- Select Vehicle --</option>
+            @foreach (var vehicle in vehicles)
+            {
+                <option value="@vehicle.Id">@vehicle.Brand @vehicle.Model - @vehicle.LicensePlate</option>
+            }
+        </select>
+    </div>
+
+    <button @onclick="SaveRepairOrder">Save</button>
+    <button @onclick="@(() => Navigation.NavigateTo("/repairorders"))">Cancel</button>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private RepairOrderDto? repairOrder;
+    private List<VehicleDto> vehicles = new();
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            repairOrder = await RepairOrderService.GetRepairOrderByIdAsync(Id);
+            vehicles = await VehicleService.GetVehiclesAsync();
+
+            if (repairOrder == null)
+            {
+                errorMessage = "Repair order not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading repair order: {ex.Message}";
+        }
+    }
+
+    private async Task SaveRepairOrder()
+    {
+        errorMessage = null;
+
+        if (repairOrder == null)
+        {
+            errorMessage = "No repair order data to save.";
+            return;
+        }
+
+        if (repairOrder.VehicleId == 0)
+        {
+            errorMessage = "Please select a vehicle.";
+            return;
+        }
+
+        try
+        {
+            await RepairOrderService.UpdateRepairOrderAsync(repairOrder);
+            Navigation.NavigateTo("/repairorders");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating repair order: {ex.Message}";
+        }
+    }
+}

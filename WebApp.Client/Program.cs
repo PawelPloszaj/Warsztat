@@ -22,4 +22,5 @@ builder.Services.AddScoped<RepairService>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<ClientService>();
 builder.Services.AddScoped<MechanicService>();
+
 await builder.Build().RunAsync();

@@ -6,7 +6,11 @@
 
 <h3>Vehicles</h3>
 
-<input type="text" placeholder="Search by brand or model..." @bind="searchTerm" @oninput="FilterVehicles" />
+<div class="header-container">
+    <button class="add-button" @onclick="@(() => Navigation.NavigateTo("/add-vehicle"))">+</button>
+</div>
+
+<input type="text" placeholder="Search by brand or model..." @bind="SearchTerm" @bind:event="onchange" />
 
 @if (vehicles == null)
 {
@@ -18,23 +22,49 @@ else if (vehicles.Count == 0)
 }
 else
 {
-    <ul>
-        @foreach (var vehicle in FilteredVehicles)
-        {
-            <li>
-                @vehicle.Brand @vehicle.Model - @vehicle.LicensePlate
-                <button @onclick="@(() => Navigation.NavigateTo($"/history/{vehicle.Id}"))">History</button>
-                <button @onclick="@(() => Navigation.NavigateTo($"/edit-vehicle/{vehicle.Id}"))">Edit</button>
-                <button @onclick="@(() => DeleteVehicle(vehicle.Id))">Delete</button>
-            </li>
-        }
-    </ul>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>License Plate</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vehicle in FilteredVehicles)
+            {
+                <tr>
+                    <td>@vehicle.Id</td>
+                    <td>@vehicle.Brand</td>
+                    <td>@vehicle.Model</td>
+                    <td>@vehicle.LicensePlate</td>
+                    <td>
+                        <button @onclick="@(() => Navigation.NavigateTo($"/history/{vehicle.Id}"))">History</button>
+                        <button @onclick="@(() => Navigation.NavigateTo($"/edit-vehicle/{vehicle.Id}"))">Edit</button>
+                        <button class="delete-button" @onclick="@(() => DeleteVehicle(vehicle.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {
     private List<VehicleDto>? vehicles;
-    private string searchTerm = "";
     private List<VehicleDto>? filteredVehicles;
+    private string searchTerm = "";
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            searchTerm = value;
+            FilterVehicles();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,12 +99,16 @@ else
 
     private void FilterVehicles()
     {
-        filteredVehicles = string.IsNullOrWhiteSpace(searchTerm)
-            ? vehicles
-            : vehicles?.Where(v =>
-                v.Brand.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                v.Model.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+        if (vehicles == null)
+        {
+            filteredVehicles = new List<VehicleDto>();
+            return;
+        }
+
+        filteredVehicles = vehicles
+            .Where(v => v.Brand.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        v.Model.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
     private List<VehicleDto> FilteredVehicles => filteredVehicles ?? new List<VehicleDto>();

@@ -1,4 +1,5 @@
 ﻿namespace WebApp.Shared.Dto;
+using System.Text.Json.Serialization;
 
 public class MechanicDto
 {
@@ -6,6 +7,6 @@ public class MechanicDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
 
-    public List<RepairDto> Repairs { get; set; } = new();
+    [JsonIgnore] public List<RepairDto> Repairs { get; set; } = new();
 }
 

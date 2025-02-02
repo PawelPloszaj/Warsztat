@@ -1,28 +1,117 @@
 ﻿@page "/repairorders"
-@using WebApp.Shared.Dto
 @using WebApp.Client.Services
-@inject HttpClient Http
+@using WebApp.Shared.Dto
+@inject RepairOrderService RepairOrderService
+@inject NavigationManager Navigation
+
 <h3>Repair Orders</h3>
 
-@if (repairOrders == null)
+<div class="header-container">
+    <button class="add-button" @onclick="@(() => Navigation.NavigateTo("/add-repairorder"))">+</button>
+</div>
+
+<div>
+    <label>Status:</label>
+    <select @bind="selectedStatus" @bind:event="onchange">
+        <option value="">All</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+    </select>
+
+    <label>Start Date:</label>
+    <input type="date" @bind="selectedDate" @bind:event="onchange" />
+</div>
+
+@if (filteredOrders == null)
 {
     <p>Loading...</p>
 }
+else if (filteredOrders.Count == 0)
+{
+    <p>No repair orders match the criteria.</p>
+}
 else
 {
-    <ul>
-        @foreach (var order in repairOrders)
-        {
-            <li>Order ID: @order.Id, Vehicle ID: @order.VehicleId, Status: @order.Status</li>
-        }
-    </ul>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in filteredOrders)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.VehicleId</td>
+                    <td>@order.Status</td>
+                    <td>@order.StartDate.ToShortDateString()</td>
+                    <td>
+                        <button @onclick="@(() => Navigation.NavigateTo($"/edit-repairorder/{order.Id}"))">Edit</button>
+                        <button class="delete-button" @onclick="@(() => DeleteRepairOrder(order.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {
-    private List<RepairOrderDto>? repairOrders;
+    private List<RepairOrderDto>? allOrders;
+    private List<RepairOrderDto>? filteredOrders;
+    private string selectedStatus = "";
+    private DateTime? selectedDate;
+
+    private string SelectedStatus
+    {
+        get => selectedStatus;
+        set
+        {
+            selectedStatus = value;
+            FilterOrders();
+        }
+    }
+
+    private DateTime? SelectedDate
+    {
+        get => selectedDate;
+        set
+        {
+            selectedDate = value;
+            FilterOrders();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        repairOrders = await Http.GetFromJsonAsync<List<RepairOrderDto>>("api/repairorders");
+        allOrders = await RepairOrderService.GetRepairOrdersAsync();
+        FilterOrders();
+    }
+
+    private void FilterOrders()
+    {
+        filteredOrders = allOrders
+            ?.Where(o => (string.IsNullOrEmpty(selectedStatus) || o.Status == selectedStatus)
+                      && (!selectedDate.HasValue || o.StartDate.Date == selectedDate.Value.Date))
+            .ToList();
+    }
+
+    private async Task DeleteRepairOrder(int id)
+    {
+        try
+        {
+            await RepairOrderService.DeleteRepairOrderAsync(id);
+            allOrders = await RepairOrderService.GetRepairOrdersAsync();
+            FilterOrders();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting RepairOrder: {ex.Message}");
+        }
     }
 }

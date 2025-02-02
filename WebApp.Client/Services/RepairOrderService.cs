@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Json;
 using WebApp.Shared.Dto;
-using static System.Net.WebRequestMethods;
 
 namespace WebApp.Client.Services;
 
@@ -16,6 +15,11 @@ public class RepairOrderService
     public async Task<List<RepairOrderDto>> GetRepairOrdersAsync()
     {
         return await _httpClient.GetFromJsonAsync<List<RepairOrderDto>>("api/repairorders") ?? new List<RepairOrderDto>();
+    }
+
+    public async Task<RepairOrderDto?> GetRepairOrderByIdAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<RepairOrderDto>($"api/repairorders/{id}");
     }
 
     public async Task AddRepairOrderAsync(RepairOrderDto repairOrder)

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace WebApp.Server.Data;
 
@@ -8,5 +9,5 @@ public class Mechanic
     [Required, MaxLength(50)] public string FirstName { get; set; } = string.Empty;
     [Required, MaxLength(50)] public string LastName { get; set; } = string.Empty;
 
-    public List<Repair> Repairs { get; set; } = new();
+    [JsonIgnore] public List<Repair> Repairs { get; set; } = new();
 }
